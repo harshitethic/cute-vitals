@@ -172,15 +172,19 @@ def gpu_reading():
         temp = None
         for sensor in sorted((device / 'hwmon').glob('hwmon*/temp*_input')):
             raw = read_text(sensor)
-            if raw:
-                temp = float(raw) / 1000
+            sample = numeric(raw)
+            if sample is not None:
+                temp = sample / 1000
                 break
         name = read_text(device / 'product_name') or read_text(device / 'device') or 'AMD GPU'
+        used_bytes = numeric(used)
+        total_bytes = numeric(total)
+        power_microwatts = numeric(power)
         # AMD VRAM and power sysfs values are bytes and microwatts respectively.
-        return {'name': name, 'temp': temp, 'load': float(load) if load else None,
-                'mem_used': float(used) / 1024**2 if used else 0,
-                'mem_total': float(total) / 1024**2 if total else 0,
-                'power': float(power) / 1_000_000 if power else None}, None
+        return {'name': name, 'temp': temp, 'load': numeric(load),
+                'mem_used': used_bytes / 1024**2 if used_bytes is not None else None,
+                'mem_total': total_bytes / 1024**2 if total_bytes is not None else None,
+                'power': power_microwatts / 1_000_000 if power_microwatts is not None else None}, None
     return None, 'No supported NVIDIA or AMD GPU found'
 
 def process_rows():
