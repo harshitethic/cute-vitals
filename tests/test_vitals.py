@@ -27,3 +27,11 @@ def test_import_has_no_gui_side_effect(self):
     )
     self.assertEqual(result.returncode, 0, result.stderr)
     self.assertEqual(result.stdout.strip(), "import complete")
+
+def test_malformed_and_overreported_meminfo(self):
+    with patch.object(cv, "read_text", return_value="MemTotal: 8192 kB\nMemFree: bad kB\nMemAvailable: 2048 kB"):
+        self.assertEqual(cv.ram_reading(), (6.0, 8.0))
+    with patch.object(cv, "read_text", return_value="MemTotal: 8192 kB\nMemAvailable: 99999 kB"):
+        self.assertEqual(cv.ram_reading(), (0.0, 8.0))
+    with patch.object(cv, "read_text", return_value="MemTotal: 0 kB\nMemAvailable: 0 kB"):
+        self.assertIsNone(cv.ram_reading())
