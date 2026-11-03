@@ -327,7 +327,16 @@ class Window(QMainWindow):
         # GPU metrics are independent of CPU sampling and may temporarily fail.
         gpu,err=gpu_reading();
         if gpu:
-            self.gpu_name.setText(gpu['name']); self.gpu_load.set_value(gpu['load']); self.gpu_temp.set_value(gpu['temp'],f"{gpu['temp']:.0f}°C"); self.vram.set_value(gpu['mem_used']/gpu['mem_total']*100 if gpu['mem_total'] else None,f"{gpu['mem_used']:.0f} / {gpu['mem_total']:.0f} MiB"); self.power.set_value(gpu['power'],f"{gpu['power']:.1f} W")
+            self.gpu_name.setText(gpu['name'])
+            self.gpu_load.set_value(gpu['load'])
+            temperature = gpu.get('temp')
+            self.gpu_temp.set_value(temperature, f"{temperature:.0f}°C" if temperature is not None else None)
+            used, capacity = gpu.get('mem_used'), gpu.get('mem_total')
+            vram_ratio = used / capacity * 100 if used is not None and capacity is not None and capacity > 0 else None
+            vram_label = f"{used:.0f} / {capacity:.0f} MiB" if used is not None and capacity is not None else None
+            self.vram.set_value(vram_ratio, vram_label)
+            watts = gpu.get('power')
+            self.power.set_value(watts, f"{watts:.1f} W" if watts is not None else None)
         else:
             self.gpu_name.setText('NVIDIA GPU: unavailable'); [g.set_value(None) for g in (self.gpu_load,self.gpu_temp,self.vram,self.power)]
         if self.graph_toggle.isChecked():
