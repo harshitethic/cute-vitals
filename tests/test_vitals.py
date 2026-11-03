@@ -67,3 +67,22 @@ class VitalsTests(unittest.TestCase):
         for field in ("temp", "load", "power"):
             self.assertIsNone(gpu[field])
         self.assertEqual(gpu["mem_used"], 1024)
+
+    def test_amd_power_from_hwmon(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            device = base / "class/drm/card0/device"
+            hwmon = device / "hwmon/hwmon0"
+            hwmon.mkdir(parents=True)
+            (device / "vendor").write_text("0x1002")
+            (device / "product_name").write_text("AMD Test")
+            (device / "mem_info_vram_used").write_text("1048576")
+            (device / "mem_info_vram_total").write_text("8388608")
+            (hwmon / "power1_average").write_text("45000000")
+            with patch.object(cv, "BASE", base), patch.object(
+                cv.subprocess, "run", return_value=SimpleNamespace(returncode=1, stdout="")
+            ):
+                gpu, error = cv.gpu_reading()
+            self.assertIsNone(error)
+            self.assertEqual(gpu["name"], "AMD Test")
+            self.assertEqual(gpu["power"], 45.0)
