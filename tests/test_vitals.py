@@ -86,3 +86,27 @@ class VitalsTests(unittest.TestCase):
             self.assertIsNone(error)
             self.assertEqual(gpu["name"], "AMD Test")
             self.assertEqual(gpu["power"], 45.0)
+
+    def test_amd_nonfinite_or_invalid_values(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            device = base / "class/drm/card0/device"
+            sensor = device / "hwmon/hwmon0/temp1_input"
+            sensor.parent.mkdir(parents=True)
+            (device / "vendor").write_text("0x1002")
+            (device / "product_name").write_text("AMD Partial")
+            (device / "gpu_busy_percent").write_text("not-a-number")
+            (device / "mem_info_vram_used").write_text("NaN")
+            (device / "mem_info_vram_total").write_text("8388608")
+            (device / "power1_average").write_text("N/A")
+            sensor.write_text("NaN")
+            with patch.object(cv, "BASE", base), patch.object(
+                cv.subprocess, "run", return_value=SimpleNamespace(returncode=1, stdout="")
+            ):
+                gpu, _ = cv.gpu_reading()
+            self.assertEqual(gpu["name"], "AMD Partial")
+            self.assertIsNone(gpu["load"])
+            self.assertIsNone(gpu["mem_used"])
+            self.assertIsNone(gpu["temp"])
+            self.assertIsNone(gpu["power"])
+            self.assertEqual(gpu["mem_total"], 8.0)
