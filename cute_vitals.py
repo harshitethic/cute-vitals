@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, platform, re, subprocess, time
+import csv, os, platform, re, subprocess, time
 from pathlib import Path
 
 try:
@@ -141,7 +141,7 @@ def gpu_reading():
         # nounits makes the output easier to parse: values arrive as plain numbers.
         p = subprocess.run(['nvidia-smi', f'--query-gpu={query}', '--format=csv,noheader,nounits'], text=True, capture_output=True, timeout=.8)
         if p.returncode == 0 and p.stdout.strip():
-            parts = [x.strip() for x in p.stdout.splitlines()[0].split(',')]
+            parts = [x.strip() for x in next(csv.reader([p.stdout.splitlines()[0]]))]
             if len(parts) >= 6:
                 return {'name': parts[0], 'temp': float(parts[1]), 'load': float(parts[2]), 'mem_used': float(parts[3]), 'mem_total': float(parts[4]), 'power': float(parts[5])}, None
     except (OSError, subprocess.SubprocessError, ValueError) as e:
