@@ -88,6 +88,17 @@ def cpu_stats():
             rows.append((p[0], sum(vals[:8]), idle))
     return rows
 
+def cpu_percent_delta(previous, current):
+    """Compute bounded CPU usage from two monotonic /proc/stat rows."""
+    if previous[0] != current[0]:
+        return None
+    total = current[1] - previous[1]
+    idle = current[2] - previous[2]
+    if total <= 0 or idle < 0:
+        return None
+    return max(0.0, min(100.0, 100.0 * (total - idle) / total))
+
+
 def temp_reading():
     """Find a sensible CPU temperature from hwmon or thermal-zone sensors."""
     if os.name == 'nt':
