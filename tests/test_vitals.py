@@ -153,3 +153,10 @@ class VitalsTests(unittest.TestCase):
             self.assertEqual(window.gpu_temp.value.text(), "Unavailable")
             self.assertEqual(window.power.value.text(), "Unavailable")
             window.close()
+
+    def test_window_gpu_fallback_does_not_claim_nvidia(self):
+        with patch.object(cv, "cpu_stats", return_value=[]),              patch.object(cv, "cpu_model", return_value="Mock CPU"),              patch.object(cv, "temp_reading", return_value=("Unavailable", None)),              patch.object(cv, "gpu_reading", return_value=(None, "not found")),              patch.object(cv, "ram_reading", return_value=(1, 2)),              patch.object(cv, "read_text", return_value=None):
+            window = cv.Window()
+            window.timer.stop()
+            self.assertEqual(window.gpu_name.text(), "GPU: unavailable")
+            window.close()
