@@ -124,3 +124,14 @@ class VitalsTests(unittest.TestCase):
             (therm / "type").write_text("cpu_thermal")
             with patch.object(cv, "BASE", base):
                 self.assertEqual(cv.temp_reading(), ("cpu_thermal", 55.0))
+
+    def test_process_list_retains_valid_rows_around_malformed_ps_output(self):
+        output = ("junk row\n"
+                  "123 python 1.0 2.0 1024\n"
+                  "456 bad notnumeric 4.0 100\n"
+                  "789 bash 3.5 1.0 512\n")
+        fake = SimpleNamespace(stdout=output, returncode=0)
+        with patch.object(cv.subprocess, "run", return_value=fake):
+            rows = cv.process_rows()
+        self.assertEqual(rows, [("123", "python", 1.0, 2.0, 1024),
+                                ("789", "bash", 3.5, 1.0, 512)])
