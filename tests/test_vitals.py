@@ -49,3 +49,11 @@ class VitalsTests(unittest.TestCase):
         self.assertIsNone(cv.cpu_percent_delta(("cpu", 100, 30), ("cpu1", 200, 70)))
         self.assertIsNone(cv.cpu_percent_delta(("cpu", 100, 30), ("cpu", 100, 30)))
         self.assertEqual(cv.cpu_percent_delta(("cpu", 100, 30), ("cpu", 200, 200)), 0.0)
+
+    def test_nvidia_quoted_comma_model(self):
+        output = SimpleNamespace(returncode=0, stdout='"Mock, RTX", 41, 22, 1024, 8192, 80\n')
+        with patch.object(cv.subprocess, "run", return_value=output):
+            gpu, error = cv.gpu_reading()
+        self.assertIsNone(error)
+        self.assertEqual(gpu["name"], "Mock, RTX")
+        self.assertEqual(gpu["mem_used"], 1024)
