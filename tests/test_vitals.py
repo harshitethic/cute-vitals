@@ -135,3 +135,10 @@ class VitalsTests(unittest.TestCase):
             rows = cv.process_rows()
         self.assertEqual(rows, [("123", "python", 1.0, 2.0, 1024),
                                 ("789", "bash", 3.5, 1.0, 512)])
+
+    def test_window_shows_unavailable_for_broken_cpu_frequency(self):
+        with patch.object(cv, "cpu_stats", return_value=[]),              patch.object(cv, "cpu_model", return_value="Mock CPU"),              patch.object(cv, "temp_reading", return_value=("Unavailable", None)),              patch.object(cv, "gpu_reading", return_value=(None, "offline")),              patch.object(cv, "ram_reading", return_value=(1, 2)),              patch.object(cv, "read_text", return_value="not-a-frequency"):
+            window = cv.Window()
+            window.timer.stop()
+            self.assertEqual(window.cpu_freq.text(), "Frequency: unavailable")
+            window.close()
