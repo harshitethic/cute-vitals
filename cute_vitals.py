@@ -287,10 +287,8 @@ class Window(QMainWindow):
             total = psutil.cpu_percent(None)
             core = psutil.cpu_percent(None, percpu=True)
         elif self.prev and stats:
-            def pct(old,new):
-                # CPU ticks are cumulative. Busy ticks divided by all ticks gives load.
-                dt=new[1]-old[1]; di=new[2]-old[2]; return 100*(dt-di)/dt if dt else 0
-            total=pct(self.prev[0],stats[0]); core=[pct(self.prev[i+1],stats[i+1]) for i in range(min(len(stats)-1, os.cpu_count() or 1)) if i+1 < len(self.prev)]
+            total=cpu_percent_delta(self.prev[0],stats[0])
+            core=[cpu_percent_delta(self.prev[i+1],stats[i+1]) for i in range(min(len(stats)-1, os.cpu_count() or 1)) if i+1 < len(self.prev)]
         self.prev=stats; self.cpu_load.set_value(total); label,temp=temp_reading(); self.cpu_temp.set_value(temp, f'{temp:.1f}°C' if temp is not None else None)
         if os.name == 'nt' and psutil is not None:
             frequency = psutil.cpu_freq(); self.cpu_freq.setText(f'Frequency: {frequency.current:.0f} MHz' if frequency else 'Frequency: unavailable')
