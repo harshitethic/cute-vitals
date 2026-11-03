@@ -35,3 +35,10 @@ def test_malformed_and_overreported_meminfo(self):
         self.assertEqual(cv.ram_reading(), (0.0, 8.0))
     with patch.object(cv, "read_text", return_value="MemTotal: 0 kB\nMemAvailable: 0 kB"):
         self.assertIsNone(cv.ram_reading())
+
+def test_proc_stat_guest_ticks_and_malformed_rows(self):
+    data = ("cpu 100 20 30 200 50 10 5 5 7 8\n"
+            "cpu0 60 0 10 70 10 0 0 0 5 3\n"
+            "cpu1 broken data\ncpu2 1 2\nintr 12345\n")
+    with patch.object(cv, "read_text", return_value=data):
+        self.assertEqual(cv.cpu_stats(), [("cpu", 420, 250), ("cpu0", 150, 80)])
