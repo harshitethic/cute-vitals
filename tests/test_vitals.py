@@ -57,3 +57,13 @@ class VitalsTests(unittest.TestCase):
         self.assertIsNone(error)
         self.assertEqual(gpu["name"], "Mock, RTX")
         self.assertEqual(gpu["mem_used"], 1024)
+
+    def test_nvidia_na_metrics_remain_partial_reading(self):
+        output = SimpleNamespace(returncode=0, stdout="RTX, N/A, N/A, 1024, 8192, N/A\n")
+        with patch.object(cv.subprocess, "run", return_value=output):
+            gpu, error = cv.gpu_reading()
+        self.assertIsNone(error)
+        self.assertEqual(gpu["name"], "RTX")
+        for field in ("temp", "load", "power"):
+            self.assertIsNone(gpu[field])
+        self.assertEqual(gpu["mem_used"], 1024)
