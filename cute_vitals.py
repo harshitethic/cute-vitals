@@ -296,4 +296,13 @@ class Window(QMainWindow):
         self.status.setText(f'Updated {time.strftime("%H:%M:%S")} · ' + ('GPU query OK' if gpu else 'GPU query unavailable; will retry'))
 
 # QApplication owns the Qt event loop: it keeps the window alive and dispatches timers.
-app=QApplication([]); app.setApplicationName('Cute Vitals'); w=Window(); w.show(); app.exec()
+def main():
+    app = QApplication([])
+    app.setApplicationName('Cute Vitals')
+    window = Window()
+    window.show()
+    return app.exec()
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
