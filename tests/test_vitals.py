@@ -18,3 +18,12 @@ class VitalsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = cv.QApplication.instance() or cv.QApplication([])
+
+def test_import_has_no_gui_side_effect(self):
+    result = subprocess.run(
+        [sys.executable, "-c", "import cute_vitals; print('import complete')"],
+        cwd=Path(cv.__file__).parent, text=True, capture_output=True, timeout=8,
+        env={**os.environ, "QT_QPA_PLATFORM": "offscreen"},
+    )
+    self.assertEqual(result.returncode, 0, result.stderr)
+    self.assertEqual(result.stdout.strip(), "import complete")
