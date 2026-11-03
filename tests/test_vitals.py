@@ -142,3 +142,14 @@ class VitalsTests(unittest.TestCase):
             window.timer.stop()
             self.assertEqual(window.cpu_freq.text(), "Frequency: unavailable")
             window.close()
+
+    def test_window_renders_partial_gpu_without_exception(self):
+        gpu = {"name": "Partial GPU", "temp": None, "load": None,
+               "mem_used": None, "mem_total": None, "power": None}
+        with patch.object(cv, "cpu_stats", return_value=[]),              patch.object(cv, "cpu_model", return_value="Mock CPU"),              patch.object(cv, "temp_reading", return_value=("Unavailable", None)),              patch.object(cv, "gpu_reading", return_value=(gpu, None)),              patch.object(cv, "ram_reading", return_value=(1, 2)),              patch.object(cv, "read_text", return_value=None):
+            window = cv.Window()
+            window.timer.stop()
+            self.assertEqual(window.gpu_name.text(), "Partial GPU")
+            self.assertEqual(window.gpu_temp.value.text(), "Unavailable")
+            self.assertEqual(window.power.value.text(), "Unavailable")
+            window.close()
