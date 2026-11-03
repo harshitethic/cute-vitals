@@ -164,6 +164,11 @@ def gpu_reading():
         used = read_text(device / 'mem_info_vram_used')
         total = read_text(device / 'mem_info_vram_total')
         power = read_text(device / 'power1_average')
+        if power is None:
+            for power_sensor in sorted((device / 'hwmon').glob('hwmon*/power1_average')):
+                power = read_text(power_sensor)
+                if power is not None:
+                    break
         temp = None
         for sensor in sorted((device / 'hwmon').glob('hwmon*/temp*_input')):
             raw = read_text(sensor)
