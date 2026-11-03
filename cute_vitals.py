@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, os, platform, re, subprocess, time
+import csv, math, os, platform, re, subprocess, time
 from pathlib import Path
 
 try:
@@ -133,6 +133,15 @@ def temp_reading():
         return 3
     return (sorted(candidates, key=sensor_priority) or [("Unavailable", None)])[0]
 
+def numeric(value):
+    """Return a finite numeric sensor sample, or None for N/A and bad data."""
+    try:
+        sample = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return sample if math.isfinite(sample) else None
+
+
 def gpu_reading():
     """Read GPU metrics, preferring NVIDIA and then falling back to AMD."""
     # Keep this list aligned with the command requested for the project.
@@ -143,7 +152,7 @@ def gpu_reading():
         if p.returncode == 0 and p.stdout.strip():
             parts = [x.strip() for x in next(csv.reader([p.stdout.splitlines()[0]]))]
             if len(parts) >= 6:
-                return {'name': parts[0], 'temp': float(parts[1]), 'load': float(parts[2]), 'mem_used': float(parts[3]), 'mem_total': float(parts[4]), 'power': float(parts[5])}, None
+                return {'name': parts[0], 'temp': numeric(parts[1]), 'load': numeric(parts[2]), 'mem_used': numeric(parts[3]), 'mem_total': numeric(parts[4]), 'power': numeric(parts[5])}, None
     except (OSError, subprocess.SubprocessError, ValueError) as e:
         pass
 
