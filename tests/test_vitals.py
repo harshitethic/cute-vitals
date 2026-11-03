@@ -42,3 +42,10 @@ def test_proc_stat_guest_ticks_and_malformed_rows(self):
             "cpu1 broken data\ncpu2 1 2\nintr 12345\n")
     with patch.object(cv, "read_text", return_value=data):
         self.assertEqual(cv.cpu_stats(), [("cpu", 420, 250), ("cpu0", 150, 80)])
+
+def test_cpu_percent_delta_bounded_and_counter_reset(self):
+    self.assertAlmostEqual(cv.cpu_percent_delta(("cpu", 100, 30), ("cpu", 200, 70)), 60.0)
+    self.assertIsNone(cv.cpu_percent_delta(("cpu", 200, 80), ("cpu", 100, 30)))
+    self.assertIsNone(cv.cpu_percent_delta(("cpu", 100, 30), ("cpu1", 200, 70)))
+    self.assertIsNone(cv.cpu_percent_delta(("cpu", 100, 30), ("cpu", 100, 30)))
+    self.assertEqual(cv.cpu_percent_delta(("cpu", 100, 30), ("cpu", 200, 200)), 0.0)
