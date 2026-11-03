@@ -110,3 +110,17 @@ class VitalsTests(unittest.TestCase):
             self.assertIsNone(gpu["temp"])
             self.assertIsNone(gpu["power"])
             self.assertEqual(gpu["mem_total"], 8.0)
+
+    def test_temperature_skips_malformed_sensor(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            hw = base / "class/hwmon/hwmon0"
+            therm = base / "class/thermal/thermal_zone0"
+            hw.mkdir(parents=True)
+            therm.mkdir(parents=True)
+            (hw / "name").write_text("coretemp")
+            (hw / "temp1_input").write_text("bad")
+            (therm / "temp").write_text("55000")
+            (therm / "type").write_text("cpu_thermal")
+            with patch.object(cv, "BASE", base):
+                self.assertEqual(cv.temp_reading(), ("cpu_thermal", 55.0))
