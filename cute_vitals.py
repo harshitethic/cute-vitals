@@ -58,9 +58,9 @@ def ram_reading():
             values[key] = number / 1024
     total = values.get('MemTotal')
     available = values.get('MemAvailable')
-    if total is None or available is None:
+    if total is None or total <= 0 or available is None:
         return None
-    return total - available, total
+    return max(0.0, total - min(available, total)), total
 
 def cpu_stats():
     """Return cumulative CPU tick counts for the total CPU and each core.
