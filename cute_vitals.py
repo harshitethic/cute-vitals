@@ -294,7 +294,7 @@ class Window(QMainWindow):
             frequency = psutil.cpu_freq(); self.cpu_freq.setText(f'Frequency: {frequency.current:.0f} MHz' if frequency else 'Frequency: unavailable')
         else:
             mhz=read_text('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'); self.cpu_freq.setText(f'Frequency: {float(mhz)/1000:.0f} MHz' if mhz else 'Frequency: unavailable')
-        self.cores.setText('Per-core: ' + ('  '.join(f'C{i} {v:.0f}%' for i,v in enumerate(core)) if core else 'warming up…'))
+        self.cores.setText('Per-core: ' + ('  '.join(f'C{i} {v:.0f}%' for i,v in enumerate(core) if v is not None) if core and any(v is not None for v in core) else 'warming up…'))
         ram=ram_reading(); self.ram.set_value(ram[0]/ram[1]*100 if ram else None, f'{ram[0]:.0f} / {ram[1]:.0f} MiB' if ram else None)
         # GPU metrics are independent of CPU sampling and may temporarily fail.
         gpu,err=gpu_reading();
