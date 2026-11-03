@@ -77,8 +77,15 @@ def cpu_stats():
         # The first row is named "cpu" and contains the real system-wide total.
         # Following rows are named cpu0, cpu1, etc. for individual cores.
         if p and (p[0] == 'cpu' or p[0][3:].isdigit()):
-            vals = list(map(int, p[1:])); idle = vals[3] + (vals[4] if len(vals) > 4 else 0)
-            rows.append((p[0], sum(vals), idle))
+            try:
+                vals = [int(part) for part in p[1:]]
+            except ValueError:
+                continue
+            if len(vals) < 4 or any(value < 0 for value in vals):
+                continue
+            # Linux guest/guest_nice are already part of user/nice ticks.
+            idle = vals[3] + (vals[4] if len(vals) > 4 else 0)
+            rows.append((p[0], sum(vals[:8]), idle))
     return rows
 
 def temp_reading():
