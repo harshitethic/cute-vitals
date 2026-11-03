@@ -207,10 +207,17 @@ def process_rows():
         # ps already calculates process CPU and memory percentages for us.
         result = subprocess.run(['ps', '-eo', 'pid=,comm=,%cpu=,%mem=,rss=', '--sort=-%cpu'], text=True, capture_output=True, timeout=.5)
         rows = []
-        for line in result.stdout.splitlines()[:12]:
+        for line in result.stdout.splitlines():
             parts = line.split()
-            if len(parts) >= 5:
-                rows.append((parts[0], parts[1], float(parts[2]), float(parts[3]), int(parts[4])))
+            if len(parts) < 5:
+                continue
+            try:
+                row = (parts[0], parts[1], float(parts[2]), float(parts[3]), int(parts[4]))
+            except ValueError:
+                continue
+            rows.append(row)
+            if len(rows) == 12:
+                break
         return rows
     except (OSError, subprocess.SubprocessError, ValueError):
         return []
