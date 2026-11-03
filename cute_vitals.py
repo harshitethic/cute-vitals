@@ -116,13 +116,15 @@ def temp_reading():
         name = read_text(hw / 'name') or ''
         for inp in hw.glob('temp*_input'):
             raw = read_text(inp)
-            if raw:
+            sample = numeric(raw)
+            if sample is not None:
                 label = read_text(inp.with_name(inp.name.replace('_input', '_label'))) or name or 'Temperature'
-                candidates.append((label, float(raw) / 1000))
+                candidates.append((label, sample / 1000))
     for z in sorted((BASE / 'class/thermal').glob('thermal_zone*')):
         raw = read_text(z / 'temp')
-        if raw:
-            candidates.append((read_text(z / 'type') or 'Thermal zone', float(raw) / 1000))
+        sample = numeric(raw)
+        if sample is not None:
+            candidates.append((read_text(z / 'type') or 'Thermal zone', sample / 1000))
     # Prefer a package/main-die reading: that represents the CPU as a whole.
     # Individual "Core 0" readings are only a fallback when no package sensor exists.
     def sensor_priority(item):
