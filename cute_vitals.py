@@ -46,10 +46,16 @@ def ram_reading():
     values = {}
     for line in (read_text('/proc/meminfo') or '').splitlines():
         key, _, rest = line.partition(':')
-        number = rest.strip().split()[0] if rest.strip() else None
-        if number:
+        parts = rest.strip().split()
+        if not parts:
+            continue
+        try:
+            number = int(parts[0])
+        except ValueError:
+            continue
+        if number >= 0:
             # /proc/meminfo reports memory in KiB; convert to MiB for the UI.
-            values[key] = float(number) / 1024
+            values[key] = number / 1024
     total = values.get('MemTotal')
     available = values.get('MemAvailable')
     if total is None or available is None:
